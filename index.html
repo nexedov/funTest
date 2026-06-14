@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FanStat Бот Telegram — Официальный Сервис Аналитики и OSINT</title>
+    <meta name="description" content="Аналитика Telegram-каналов, поиск скрытых чатов по тексту, деанонимизация создателей стикерпаков и отслеживание пересылок постов через FanStat.">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b0e14;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            opacity: 0;
+            animation: fadeInPage 0.8s forwards ease-out;
+        }
+
+        @keyframes fadeInPage {
+            to { opacity: 1; }
+        }
+
+        .container {
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo-icon {
+            font-size: 55px;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #f5f5f5;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            color: #6c7a8c;
+            font-size: 16px;
+            margin-bottom: 35px;
+            line-height: 1.5;
+        }
+
+        .btn-link {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 18px 30px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 15px rgba(0, 180, 219, 0.3);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-link::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            transition: 0.75s;
+        }
+
+        .btn-link:hover {
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            box-shadow: 0 8px 25px rgba(0, 180, 219, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .btn-link:hover::before {
+            left: 125%;
+        }
+
+        .btn-link:active {
+            transform: translateY(1px);
+            box-shadow: 0 3px 10px rgba(0, 180, 219, 0.3);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 40px;
+            text-align: left;
+        }
+
+        .feature-card {
+            background-color: #121824;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUpCard 0.5s forwards ease-out;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.2s; }
+        .feature-card:nth-child(2) { animation-delay: 0.4s; }
+        .feature-card:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUpCard {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-icon {
+            font-size: 22px;
+            background: #1a2333;
+            padding: 8px;
+            border-radius: 8px;
+            line-height: 1;
+        }
+
+        .feature-text h3 {
+            font-size: 16px;
+            color: #f5f5f5;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .feature-text p {
+            color: #6c7a8c;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .faq-section {
+            text-align: left;
+            margin-bottom: 40px;
+        }
+
+        .faq-title {
+            font-size: 18px;
+            color: #f5f5f5;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .faq-item {
+            background-color: #121824;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .faq-item:hover {
+            border-color: #2e3f56;
+        }
+
+        .faq-question {
+            padding: 15px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #f5f5f5;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .faq-question:hover {
+            background-color: #192233;
+        }
+
+        .faq-question::after {
+            content: '▼';
+            font-size: 10px;
+            color: #00b4db;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .faq-item.active .faq-question::after {
+            transform: rotate(-180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: #0d121c;
+            color: #6c7a8c;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .faq-answer-content {
+            padding: 15px;
+        }
+
+        .footer-links {
+            margin-top: auto;
+            padding: 20px 0;
+            font-size: 13px;
+            text-align: center;
+            width: 100%;
+        }
+        .footer-links p {
+            color: #475569;
+        }
+        .footer-links a {
+            color: #00b4db;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <span class="logo-icon">📊</span>
+        
+        <h1>FanStat — Аналитика и OSINT в Telegram</h1>
+        <p class="subtitle">Веб-интерфейс для глубокого аудита мессенджера. Поиск по закрытым базам данных текстов, имён, отслеживание цепочек репостов и деанонимизация создателей контента.</p>
+        
+        <a href="https://t.me/AnalyticaTg_bot" class="btn-link" target="_blank">Открыть панель управления</a>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <div class="feature-text">
+                    <h3>Глобальный поиск</h3>
+                    <p>Поиск целевых сообществ по ключевым словам (/search), фрагментам скрытых текстов (/text) и именам пользователей (/human).</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⛓️</div>
+                <div class="feature-text">
+                    <h3>Анализ виральности</h3>
+                    <p>Перешлите любой пост из канала, чтобы мгновенно увидеть полную цепочку его распространения и упоминаний во всех чатах.</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👤</div>
+                <div class="feature-text">
+                    <h3>Идентификация авторов</h3>
+                    <p>Узнайте реальный аккаунт создателя любого стикерпака или скрытого администратора группы, отправив объект на анализ.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <div class="faq-title">Руководство по использованию функций</div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Как запустить базовый аудит?</div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        Нажмите верхнюю кнопку, перейдите в интерфейс и отправьте команду <strong>/start</strong>. Для получения полной сводки отправьте боту @username, ID пользователя, ссылку на группу или контактную карточку.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Как проверить статистику чата или канала?</div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        Отправьте боту прямую ссылку на группу или её уникальный ID. Сервис сформирует детальный статистический отчет активности, вовлеченности участников и выведет общие метрики.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Доступны ли глобальные рейтинги?</div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        Да, используя команду <strong>/topchat</strong>, вы получаете актуальный структурированный каталог крупнейших сообществ. Поиск по внутренним базам архивов выполняется через команду <strong>/text</strong>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-links">
+        <p>Информационный узел. Интеграция с платформой мониторинга данных.</p>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const faqItem = button.parentElement;
+                const answer = faqItem.querySelector('.faq-answer');
+                
+                faqItem.classList.toggle('active');
+                
+                if (faqItem.classList.contains('active')) {
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                } else {
+                    answer.style.maxHeight = '0';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
